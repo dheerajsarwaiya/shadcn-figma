@@ -22,6 +22,8 @@ interface DesignerStore {
   findComponentById: (id: string) => Component | undefined;
   findComponentParent: (id: string) => Component | undefined;
   getAllComponents: () => Component[];
+  moveComponentUp: (id: string) => void;
+  moveComponentDown: (id: string) => void;
 }
 
 export const useDesignerStore = create<DesignerStore>((set, get) => ({
@@ -60,7 +62,7 @@ export const useDesignerStore = create<DesignerStore>((set, get) => ({
     const findParent = (components: Component[]): Component | undefined => {
       for (const component of components) {
         if (component.type === "container") {
-          if (component.props.children.some(child => child.id === id)) {
+          if (component.props.children.some((child: Component) => child.id === id)) {
             return component;
           }
           const found = findParent(component.props.children);
@@ -72,16 +74,103 @@ export const useDesignerStore = create<DesignerStore>((set, get) => ({
     return findParent(get().components);
   },
 
-  addComponent: (component) =>
+  moveComponentUp: (id: string) => {
+    set((state) => {
+      const parent = get().findComponentParent(id);
+      if (!parent) {
+        // Handle top-level components
+        const index = state.components.findIndex(c => c.id === id);
+        if (index <= 0) return state;
+        const newComponents = [...state.components];
+        [newComponents[index - 1], newComponents[index]] = [newComponents[index], newComponents[index - 1]];
+        return { components: newComponents };
+      }
+
+      // Handle components inside containers
+      const children = [...parent.props.children];
+      const index = children.findIndex(c => c.id === id);
+      if (index <= 0) return state;
+      [children[index - 1], children[index]] = [children[index], children[index - 1]];
+      
+      return {
+        components: state.components.map(c => {
+          if (c.id === parent.id) {
+            return {
+              ...c,
+              props: {
+                ...c.props,
+                children
+              }
+            };
+          }
+          return c;
+        })
+      };
+    });
+  },
+
+  moveComponentDown: (id: string) => {
+    set((state) => {
+      const parent = get().findComponentParent(id);
+      if (!parent) {
+        // Handle top-level components
+        const index = state.components.findIndex(c => c.id === id);
+        if (index === -1 || index >= state.components.length - 1) return state;
+        const newComponents = [...state.components];
+        [newComponents[index], newComponents[index + 1]] = [newComponents[index + 1], newComponents[index]];
+        return { components: newComponents };
+      }
+
+      // Handle components inside containers
+      const children = [...parent.props.children];
+      const index = children.findIndex(c => c.id === id);
+      if (index === -1 || index >= children.length - 1) return state;
+      [children[index], children[index + 1]] = [children[index + 1], children[index]];
+      
+      return {
+        components: state.components.map(c => {
+          if (c.id === parent.id) {
+            return {
+              ...c,
+              props: {
+                ...c.props,
+                children
+              }
+            };
+          }
+          return c;
+        })
+      };
+    });
+  },
+
+  addComponent: (component) => {
+    console.log('Adding component:', component);
+    if (component.type === 'container' && !component.props.width) {
+      component.props.width = 'full';
+    }
     set((state) => ({
       components: [...state.components, component],
-    })),
+    }));
+  },
 
-  updateComponent: (id, props) =>
+  updateComponent: (id, props) => {
+    console.log('Updating component:', id, props);
     set((state) => {
       const updateInArray = (components: Component[]): Component[] => {
         return components.map((c) => {
-          if (c.id === id) return { ...c, props };
+          if (c.id === id) {
+            console.log('Found component to update:', c);
+            const updatedProps = { ...props };
+            if (c.type === 'container') {
+              updatedProps.children = c.props.children;
+              if (!updatedProps.width) {
+                updatedProps.width = c.props.width || 'full';
+              }
+            }
+            console.log('Updated props:', updatedProps);
+            return { ...c, props: updatedProps };
+          }
           if (c.type === "container") {
             return {
               ...c,
@@ -94,8 +183,11 @@ export const useDesignerStore = create<DesignerStore>((set, get) => ({
           return c;
         });
       };
-      return { components: updateInArray(state.components) };
-    }),
+      const updatedComponents = updateInArray(state.components);
+      console.log('Updated components:', updatedComponents);
+      return { components: updatedComponents };
+    });
+  },
 
   setSelectedIds: (ids) => set({ selectedIds: ids }),
 
@@ -197,27 +289,22 @@ export const useDesignerStore = create<DesignerStore>((set, get) => ({
     set((state) => {
       if (state.selectedIds.length < 2) return state;
 
-      // Get all components including nested ones
       const allComponents = get().getAllComponents();
       
-      // Find selected components
       const selectedComponents = allComponents.filter(c => 
         state.selectedIds.includes(c.id)
       );
 
-      // Find parent containers of selected components
       const parentContainers = new Set(
         selectedComponents
           .map(c => get().findComponentParent(c.id))
           .filter((p): p is Component => p !== undefined)
       );
 
-      // If components are from different containers, we can't group them
       if (parentContainers.size > 1) return state;
 
       const parentContainer = Array.from(parentContainers)[0];
 
-      // Remove selected components from their current location
       const updateState = (components: Component[]): Component[] => {
         return components.map(c => {
           if (c.type === "container") {
@@ -226,7 +313,7 @@ export const useDesignerStore = create<DesignerStore>((set, get) => ({
               props: {
                 ...c.props,
                 children: c.props.children.filter(
-                  child => !state.selectedIds.includes(child.id)
+                  (child: Component) => !state.selectedIds.includes(child.id)
                 ),
               },
             };
@@ -235,7 +322,6 @@ export const useDesignerStore = create<DesignerStore>((set, get) => ({
         }).filter(c => !state.selectedIds.includes(c.id));
       };
 
-      // Create new container with selected components
       const containerId = crypto.randomUUID();
       const newContainer: Component = {
         id: containerId,
@@ -246,13 +332,13 @@ export const useDesignerStore = create<DesignerStore>((set, get) => ({
           align: "start",
           justify: "start",
           padding: "4",
+          width: "full",
           children: selectedComponents,
         },
         children: [],
         parentId: parentContainer?.id,
       };
 
-      // Update the state
       if (parentContainer) {
         return {
           components: updateState(state.components).map(c => {

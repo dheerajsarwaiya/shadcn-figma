@@ -7,7 +7,13 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
 import { Settings2 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 type ComponentType = keyof typeof componentRegistry;
 
@@ -22,7 +28,9 @@ export function PropertiesPanel() {
   const findComponentById = useDesignerStore((state) => state.findComponentById);
   const updateComponent = useDesignerStore((state) => state.updateComponent);
 
-  const selectedComponent = selectedIds[0] ? findComponentById(selectedIds[0]) : undefined;
+  const selectedComponent = selectedIds[0]
+    ? findComponentById(selectedIds[0])
+    : undefined;
 
   if (!selectedComponent) {
     return (
@@ -33,7 +41,7 @@ export function PropertiesPanel() {
         </div>
         <Separator />
         <div className="p-4 text-sm text-muted-foreground">
-          {selectedIds.length > 1 
+          {selectedIds.length > 1
             ? "Group components with Ctrl/Cmd + G"
             : "Select a component to edit its properties"}
         </div>
@@ -42,6 +50,16 @@ export function PropertiesPanel() {
   }
 
   const config = componentRegistry[selectedComponent.type as ComponentType];
+
+  const handlePropertyChange = (key: string, value: string) => {
+    console.log('Updating property:', { key, value, componentId: selectedIds[0] }); // Debug log
+    const updatedProps = {
+      ...selectedComponent.props,
+      [key]: value,
+    };
+    console.log('Updated props:', updatedProps); // Debug log
+    updateComponent(selectedIds[0], updatedProps);
+  };
 
   return (
     <div className="w-64 border-l bg-muted/30">
@@ -52,45 +70,42 @@ export function PropertiesPanel() {
       <Separator />
       <ScrollArea className="h-[calc(100vh-65px)]">
         <div className="p-4 space-y-4">
-          {Object.entries(config.properties).map(([key, property]) => (
-            <div key={key}>
-              <Label htmlFor={key}>{(property as PropertyConfig).label}</Label>
-              {(property as PropertyConfig).type === "select" ? (
-                <Select
-                  value={selectedComponent.props[key] || ""}
-                  onValueChange={(value) =>
-                    updateComponent(selectedIds[0], {
-                      ...selectedComponent.props,
-                      [key]: value,
-                    })
-                  }
-                >
-                  <SelectTrigger className="mt-1.5">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(property as PropertyConfig).options?.map((option: string) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input
-                  id={key}
-                  value={selectedComponent.props[key] || ""}
-                  onChange={(e) =>
-                    updateComponent(selectedIds[0], {
-                      ...selectedComponent.props,
-                      [key]: e.target.value,
-                    })
-                  }
-                  className="mt-1.5"
-                />
-              )}
-            </div>
-          ))}
+          {Object.entries(config.properties).map(([key, property]) => {
+            const currentValue = selectedComponent.props[key] || "";
+            console.log(`Property ${key} current value:`, currentValue); // Debug log
+            
+            return (
+              <div key={key}>
+                <Label htmlFor={key}>{(property as PropertyConfig).label}</Label>
+                {(property as PropertyConfig).type === "select" ? (
+                  <Select
+                    value={currentValue}
+                    onValueChange={(value) => handlePropertyChange(key, value)}
+                  >
+                    <SelectTrigger className="mt-1.5">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(property as PropertyConfig).options?.map(
+                        (option: string) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    id={key}
+                    value={currentValue}
+                    onChange={(e) => handlePropertyChange(key, e.target.value)}
+                    className="mt-1.5"
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
       </ScrollArea>
     </div>

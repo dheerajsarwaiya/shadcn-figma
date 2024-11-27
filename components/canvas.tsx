@@ -1,10 +1,10 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import { useDesignerStore, Component } from "@/lib/store";
-import { componentRegistry } from "@/lib/component-registry";
-import { Layout } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useDesignerStore, Component } from "../lib/store";
+import { componentRegistry } from "../lib/component-registry";
+import { Layout, ArrowUp, ArrowDown } from "lucide-react";
+import { cn } from "../lib/utils";
 import { MouseEvent } from "react";
 import {
   SortableContext,
@@ -31,7 +31,7 @@ export function Canvas() {
   };
 
   return (
-    <div className="flex-1 bg-background">
+    <div className="flex-1 bg-background overflow-auto">
       <div className="p-4 flex items-center gap-2 border-b">
         <Layout className="h-5 w-5" />
         <h2 className="font-semibold">Canvas</h2>
@@ -101,6 +101,8 @@ function SortableComponent({ component, isSelected }: SortableComponentProps) {
 
   const setSelectedIds = useDesignerStore((state) => state.setSelectedIds);
   const selectedIds = useDesignerStore((state) => state.selectedIds);
+  const moveComponentUp = useDesignerStore((state) => state.moveComponentUp);
+  const moveComponentDown = useDesignerStore((state) => state.moveComponentDown);
 
   const handleClick = (e: MouseEvent) => {
     e.stopPropagation();
@@ -114,6 +116,29 @@ function SortableComponent({ component, isSelected }: SortableComponentProps) {
 
   const ComponentToRender = componentRegistry[component.type as ComponentType].component;
 
+  const MoveControls = () => isSelected ? (
+    <div className="absolute right-2 top-2 flex gap-1 bg-background/80 p-1 rounded shadow-sm">
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          moveComponentUp(component.id);
+        }}
+        className="p-1 hover:bg-muted rounded"
+      >
+        <ArrowUp className="h-4 w-4" />
+      </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          moveComponentDown(component.id);
+        }}
+        className="p-1 hover:bg-muted rounded"
+      >
+        <ArrowDown className="h-4 w-4" />
+      </button>
+    </div>
+  ) : null;
+
   if (component.type === "container") {
     return (
       <div
@@ -126,11 +151,9 @@ function SortableComponent({ component, isSelected }: SortableComponentProps) {
           isSelected && "ring-2 ring-primary ring-offset-2",
           isDragging && "opacity-50"
         )}
+        onClick={handleClick}
       >
-        <div 
-          className="absolute inset-0" 
-          onClick={handleClick}
-        />
+        <MoveControls />
         <SortableContext
           items={component.props.children.map((c: Component) => c.id)}
           strategy={verticalListSortingStrategy}
@@ -163,6 +186,7 @@ function SortableComponent({ component, isSelected }: SortableComponentProps) {
         isDragging && "opacity-50"
       )}
     >
+      <MoveControls />
       <ComponentToRender {...component.props} />
     </div>
   );

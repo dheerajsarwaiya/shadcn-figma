@@ -14,6 +14,7 @@ export const componentRegistry = {
       align: "start",
       justify: "start",
       padding: "4",
+      width: "full",
       children: [],
     },
     properties: {
@@ -41,6 +42,11 @@ export const componentRegistry = {
         label: "Padding",
         type: "select",
         options: ["0", "2", "4", "6", "8", "12", "16"],
+      },
+      width: {
+        label: "Width",
+        type: "select",
+        options: ["full", "1/2", "1/3", "2/3", "1/4", "3/4", "auto"],
       },
     },
   },

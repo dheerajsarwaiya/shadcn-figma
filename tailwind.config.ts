@@ -6,6 +6,7 @@ const config: Config = {
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './lib/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
@@ -63,20 +64,12 @@ const config: Config = {
       },
       keyframes: {
         'accordion-down': {
-          from: {
-            height: '0',
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)',
-          },
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
         },
         'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-          to: {
-            height: '0',
-          },
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
         },
       },
       animation: {
@@ -85,6 +78,49 @@ const config: Config = {
       },
     },
   },
+  safelist: [
+    // Width classes
+    'w-full',
+    'w-1/2',
+    'w-1/3',
+    'w-2/3',
+    'w-1/4',
+    'w-3/4',
+    'w-auto',
+    // Padding classes
+    'p-0',
+    'p-2',
+    'p-4',
+    'p-6',
+    'p-8',
+    'p-12',
+    'p-16',
+    // Gap classes
+    'gap-0',
+    'gap-1',
+    'gap-2',
+    'gap-4',
+    'gap-6',
+    'gap-8',
+    'gap-12',
+    'gap-16',
+    // Flex classes
+    'flex',
+    'inline-flex',
+    'flex-row',
+    'flex-col',
+    // Alignment classes
+    'items-start',
+    'items-center',
+    'items-end',
+    'items-stretch',
+    'justify-start',
+    'justify-center',
+    'justify-end',
+    'justify-between',
+    'justify-around',
+  ],
   plugins: [require('tailwindcss-animate')],
 };
+
 export default config;
