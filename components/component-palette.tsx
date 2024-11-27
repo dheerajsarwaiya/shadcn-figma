@@ -1,12 +1,11 @@
 "use client";
 
-import { useDraggable } from "@dnd-kit/core";
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
-import { componentRegistry } from "@/lib/component-registry";
+import { componentRegistry } from "../lib/component-registry";
 import { PanelLeft } from "lucide-react";
-import { useId } from "react";
+import { useDesignerStore } from "../lib/store";
 
 export function ComponentPalette() {
   return (
@@ -19,7 +18,7 @@ export function ComponentPalette() {
       <ScrollArea className="h-[calc(100vh-65px)]">
         <div className="p-4 grid gap-4">
           {Object.entries(componentRegistry).map(([type, config]) => (
-            <DraggableComponent key={type} type={type} label={config.label} />
+            <ClickableComponent key={type} type={type as keyof typeof componentRegistry} label={config.label} />
           ))}
         </div>
       </ScrollArea>
@@ -27,29 +26,47 @@ export function ComponentPalette() {
   );
 }
 
-function DraggableComponent({ type, label }: { type: string; label: string }) {
-  const id = useId();
-  const { attributes, listeners, setNodeRef, isDragging, transform } = useDraggable({
-    id: `component-${id}-${type}`,
-    data: {
-      type,
-      defaultProps: componentRegistry[type].defaultProps,
-    },
-  });
+function ClickableComponent({ 
+  type,
+  label 
+}: { 
+  type: keyof typeof componentRegistry; 
+  label: string;
+}) {
+  const addComponentToContainer = useDesignerStore((state) => state.addComponentToContainer);
+  const addComponent = useDesignerStore((state) => state.addComponent);
+  const selectedIds = useDesignerStore((state) => state.selectedIds);
+  const findComponentById = useDesignerStore((state) => state.findComponentById);
 
-  const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-  } : undefined;
+  const handleClick = () => {
+    // Get the currently selected container
+    const selectedId = selectedIds[0];
+    const selectedComponent = selectedId ? findComponentById(selectedId) : null;
+    
+    if (selectedComponent?.type === "container") {
+      // Add to selected container
+      addComponentToContainer(selectedComponent.id, {
+        type,
+        props: componentRegistry[type].defaultProps,
+        children: [],
+      });
+    } else if (type === "container") {
+      // Add new container to canvas
+      addComponent({
+        id: crypto.randomUUID(),
+        type,
+        props: componentRegistry[type].defaultProps,
+        children: [],
+      });
+    }
+  };
 
   return (
     <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      style={style}
+      onClick={handleClick}
       className={cn(
-        "cursor-grab border rounded-md p-2 bg-background hover:border-primary transition-colors touch-none",
-        isDragging && "opacity-50"
+        "cursor-pointer border rounded-md p-2 bg-background hover:border-primary transition-colors",
+        "hover:bg-muted/50"
       )}
     >
       {label}

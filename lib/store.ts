@@ -11,6 +11,7 @@ export interface Component {
 interface DesignerStore {
   components: Component[];
   selectedIds: string[];
+  copiedComponents: Component[];
   addComponent: (component: Component) => void;
   updateComponent: (id: string, props: Record<string, any>) => void;
   setSelectedIds: (ids: string[]) => void;
@@ -24,11 +25,15 @@ interface DesignerStore {
   getAllComponents: () => Component[];
   moveComponentUp: (id: string) => void;
   moveComponentDown: (id: string) => void;
+  removeComponent: (id: string) => void;
+  copyComponent: (id: string) => void;
+  addCopiedComponent: (containerId: string, copiedComponentId: string) => void;
 }
 
 export const useDesignerStore = create<DesignerStore>((set, get) => ({
   components: [],
   selectedIds: [],
+  copiedComponents: [],
 
   getAllComponents: () => {
     const result: Component[] = [];
@@ -72,6 +77,95 @@ export const useDesignerStore = create<DesignerStore>((set, get) => ({
       return undefined;
     };
     return findParent(get().components);
+  },
+
+  removeComponent: (id: string) => {
+    set((state) => {
+      const parent = get().findComponentParent(id);
+      if (!parent) {
+        // Remove from top-level components
+        return {
+          components: state.components.filter(c => c.id !== id)
+        };
+      }
+
+      // Remove from container
+      return {
+        components: state.components.map(c => {
+          if (c.id === parent.id) {
+            return {
+              ...c,
+              props: {
+                ...c.props,
+                children: c.props.children.filter((child: Component) => child.id !== id)
+              }
+            };
+          }
+          return c;
+        })
+      };
+    });
+  },
+
+  copyComponent: (id: string) => {
+    set((state) => {
+      const component = get().findComponentById(id);
+      if (!component) return state;
+
+      // Deep clone the component and generate new IDs
+      const cloneWithNewIds = (comp: Component): Component => {
+        const newId = crypto.randomUUID();
+        const clone = {
+          ...comp,
+          id: newId,
+          children: [],
+        };
+
+        if (comp.type === "container") {
+          clone.props = {
+            ...comp.props,
+            children: comp.props.children.map(cloneWithNewIds)
+          };
+        }
+
+        return clone;
+      };
+
+      const clonedComponent = cloneWithNewIds(component);
+      return {
+        copiedComponents: [...state.copiedComponents, clonedComponent]
+      };
+    });
+  },
+
+  addCopiedComponent: (containerId: string, copiedComponentId: string) => {
+    set((state) => {
+      const copiedComponent = state.copiedComponents.find(c => c.id === copiedComponentId);
+      if (!copiedComponent) return state;
+
+      if (!containerId) {
+        // Add to top level
+        return {
+          components: [...state.components, copiedComponent]
+        };
+      }
+
+      // Add to container
+      return {
+        components: state.components.map(c => {
+          if (c.id === containerId) {
+            return {
+              ...c,
+              props: {
+                ...c.props,
+                children: [...c.props.children, copiedComponent]
+              }
+            };
+          }
+          return c;
+        })
+      };
+    });
   },
 
   moveComponentUp: (id: string) => {
