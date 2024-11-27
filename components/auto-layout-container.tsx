@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { cn } from "@/lib/utils";
 import { Component } from "@/lib/store";
 import { componentRegistry } from "@/lib/component-registry";
@@ -16,13 +17,13 @@ interface AutoLayoutContainerProps {
 }
 
 const widthClasses = {
-  'full': 'w-full block',
-  '1/2': 'w-1/2 block',
-  '1/3': 'w-1/3 block',
-  '2/3': 'w-2/3 block',
-  '1/4': 'w-1/4 block',
-  '3/4': 'w-3/4 block',
-  'auto': 'w-auto block'
+  'full': 'w-full',
+  '1/2': 'w-1/2',
+  '1/3': 'w-1/3',
+  '2/3': 'w-2/3',
+  '1/4': 'w-1/4',
+  '3/4': 'w-3/4',
+  'auto': 'w-auto'
 } as const;
 
 const paddingClasses = {
@@ -56,19 +57,16 @@ export function AutoLayoutContainer({
   children,
   className,
 }: AutoLayoutContainerProps) {
-  console.log('AutoLayoutContainer props:', { direction, spacing, align, justify, padding, width }); // Debug log
-
   const widthClass = widthClasses[width as keyof typeof widthClasses] || widthClasses.full;
   const paddingClass = paddingClasses[padding as keyof typeof paddingClasses] || paddingClasses['4'];
   const gapClass = gapClasses[spacing as keyof typeof gapClasses] || gapClasses['4'];
 
-  console.log('Applied classes:', { widthClass, paddingClass, gapClass }); // Debug log
-
   const containerClasses = cn(
     "border border-dashed border-border rounded-lg",
+    "flex min-w-0 flex-1", // Add flex-1 to make container grow
     widthClass,
     paddingClass,
-    direction === "horizontal" ? "flex flex-row" : "flex flex-col",
+    direction === "horizontal" ? "flex-row" : "flex-col",
     gapClass,
     {
       "items-start": align === "start",
@@ -81,37 +79,18 @@ export function AutoLayoutContainer({
       "justify-between": justify === "between",
       "justify-around": justify === "around",
     },
+    "[&>*]:flex-1 [&>*]:w-full", // Apply flex-1 and w-full to all direct children
     className
   );
-
-  console.log('Final container classes:', containerClasses); // Debug log
 
   return (
     <div
       className={containerClasses}
       style={{ 
         minWidth: 'min-content',
-        display: 'block'
       }}
     >
-      <div className={cn(
-        "w-full",
-        direction === "horizontal" ? "flex flex-row" : "flex flex-col",
-        gapClass,
-        {
-          "items-start": align === "start",
-          "items-center": align === "center",
-          "items-end": align === "end",
-          "items-stretch": align === "stretch",
-          "justify-start": justify === "start",
-          "justify-center": justify === "center",
-          "justify-end": justify === "end",
-          "justify-between": justify === "between",
-          "justify-around": justify === "around",
-        }
-      )}>
-        {children}
-      </div>
+      {children}
     </div>
   );
 }

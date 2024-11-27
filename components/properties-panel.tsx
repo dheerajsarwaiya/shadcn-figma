@@ -1,7 +1,7 @@
 "use client";
 
-import { useDesignerStore } from "@/lib/store";
-import { componentRegistry } from "@/lib/component-registry";
+import { useDesignerStore } from "../lib/store";
+import { componentRegistry } from "../lib/component-registry";
 import { ScrollArea } from "./ui/scroll-area";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -23,13 +23,29 @@ interface PropertyConfig {
   options?: string[];
 }
 
+interface ContainerProps {
+  direction: "horizontal" | "vertical";
+  spacing: string;
+  align: string;
+  justify: string;
+  padding: string;
+  width: string;
+  children: any[];
+}
+
+type ComponentProps = ContainerProps | Record<string, any>;
+
 export function PropertiesPanel() {
+  // Subscribe to both selectedIds and components to ensure re-render on changes
   const selectedIds = useDesignerStore((state) => state.selectedIds);
+  const components = useDesignerStore((state) => state.components);
   const findComponentById = useDesignerStore((state) => state.findComponentById);
   const updateComponent = useDesignerStore((state) => state.updateComponent);
 
+  // Get the selected component using both selectedIds and components
+  // This ensures the component data is always fresh
   const selectedComponent = selectedIds[0]
-    ? findComponentById(selectedIds[0])
+    ? components.find(c => c.id === selectedIds[0]) || findComponentById(selectedIds[0])
     : undefined;
 
   if (!selectedComponent) {
@@ -52,12 +68,19 @@ export function PropertiesPanel() {
   const config = componentRegistry[selectedComponent.type as ComponentType];
 
   const handlePropertyChange = (key: string, value: string) => {
-    console.log('Updating property:', { key, value, componentId: selectedIds[0] }); // Debug log
-    const updatedProps = {
-      ...selectedComponent.props,
+    console.log('Updating property:', { key, value, componentId: selectedIds[0] });
+    
+    // Only update the specific property that changed
+    const updatedProps: Partial<ComponentProps> = {
       [key]: value,
     };
-    console.log('Updated props:', updatedProps); // Debug log
+
+    // If this is a container, ensure we preserve the children
+    if (selectedComponent.type === 'container') {
+      (updatedProps as Partial<ContainerProps>).children = (selectedComponent.props as ContainerProps).children;
+    }
+
+    console.log('Updated props:', updatedProps);
     updateComponent(selectedIds[0], updatedProps);
   };
 
@@ -72,7 +95,7 @@ export function PropertiesPanel() {
         <div className="p-4 space-y-4">
           {Object.entries(config.properties).map(([key, property]) => {
             const currentValue = selectedComponent.props[key] || "";
-            console.log(`Property ${key} current value:`, currentValue); // Debug log
+            console.log(`Property ${key} current value:`, currentValue);
             
             return (
               <div key={key}>

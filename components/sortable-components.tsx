@@ -1,6 +1,6 @@
 import { useDesignerStore, Component } from "../lib/store";
 import { componentRegistry } from "../lib/component-registry";
-import { ArrowUp, ArrowDown, Trash2, Copy, Plus } from "lucide-react";
+import { ArrowUp, ArrowDown, Trash2, Copy, Plus, X } from "lucide-react";
 import { cn } from "../lib/utils";
 import { MouseEvent, useState } from "react";
 
@@ -26,6 +26,7 @@ export function SortableComponent({
   const copyComponent = useDesignerStore((state) => state.copyComponent);
   const copiedComponents = useDesignerStore((state) => state.copiedComponents);
   const addCopiedComponent = useDesignerStore((state) => state.addCopiedComponent);
+  const removeCopiedComponent = useDesignerStore((state) => state.removeCopiedComponent);
 
   const handleClick = (e: MouseEvent) => {
     e.stopPropagation();
@@ -101,8 +102,19 @@ export function SortableComponent({
     if (!showCopiedList || !isSelected || component.type !== "container") return null;
 
     return (
-      <div className="absolute left-0 top-full mt-2 w-full bg-white p-2 rounded-md shadow-lg border border-gray-200 z-50">
-        <h3 className="text-sm font-medium mb-2">Copied Components</h3>
+      <div className="absolute left-0 bottom-0 translate-y-full mt-2 w-full bg-white p-2 rounded-md shadow-lg border border-gray-200 z-50">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-sm font-medium">Copied Components</h3>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowCopiedList(false);
+            }}
+            className="p-1 hover:bg-gray-100 rounded"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
         {copiedComponents.length === 0 ? (
           <p className="text-sm text-gray-500">No copied components</p>
         ) : (
@@ -110,14 +122,28 @@ export function SortableComponent({
             {copiedComponents.map((copied) => (
               <li
                 key={copied.id}
-                className="text-sm p-1 hover:bg-gray-100 rounded cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addCopiedComponent(component.id, copied.id);
-                  setShowCopiedList(false);
-                }}
+                className="flex items-center justify-between text-sm p-1 hover:bg-gray-100 rounded"
               >
-                {copied.type}
+                <span 
+                  className="flex-grow cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    addCopiedComponent(component.id, copied.id);
+                    setShowCopiedList(false);
+                  }}
+                >
+                  {copied.type}
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeCopiedComponent(copied.id);
+                  }}
+                  className="p-1 hover:bg-red-100 text-red-600 rounded ml-2"
+                  title="Remove from copied list"
+                >
+                  <X className="h-3 w-3" />
+                </button>
               </li>
             ))}
           </ul>
