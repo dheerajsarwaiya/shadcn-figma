@@ -152,13 +152,17 @@ export function SortableComponent({
     );
   };
 
+  // Common class names for both container and non-container components
+  const componentClassName = cn(
+    "relative cursor-pointer",
+    isSelected && "ring-2 ring-primary ring-offset-2",
+    component.props.fillWidth && "w-full flex-1"
+  );
+
   if (component.type === "container") {
     return (
       <div
-        className={cn(
-          "relative cursor-pointer",
-          isSelected && "ring-2 ring-primary ring-offset-2"
-        )}
+        className={componentClassName}
         onClick={handleClick}
       >
         <Controls />
@@ -178,13 +182,7 @@ export function SortableComponent({
   }
 
   return (
-    <div
-      onClick={handleClick}
-      className={cn(
-        "relative cursor-pointer",
-        isSelected && "ring-2 ring-primary ring-offset-2"
-      )}
-    >
+    <div onClick={handleClick} className={componentClassName}>
       <Controls />
       <ComponentToRender {...component.props} />
     </div>

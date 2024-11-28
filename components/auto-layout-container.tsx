@@ -1,9 +1,8 @@
 "use client";
 
 import React from "react";
-import { cn } from "@/lib/utils";
-import { Component } from "@/lib/store";
-import { componentRegistry } from "@/lib/component-registry";
+import { cn } from "../lib/utils";
+import { Component } from "../lib/store";
 
 interface AutoLayoutContainerProps {
   direction?: "horizontal" | "vertical";
@@ -63,6 +62,31 @@ export function AutoLayoutContainer({
   const paddingClass = paddingClasses[padding as keyof typeof paddingClasses] || paddingClasses['4'];
   const gapClass = gapClasses[spacing as keyof typeof gapClasses] || gapClasses['4'];
 
+  // Wrap each child with appropriate width classes
+  const wrappedChildren = React.Children.map(children, (child) => {
+    if (!React.isValidElement(child)) return child;
+
+    // Get the component data from the child's props
+    const componentData = child.props.component as Component | undefined;
+    
+    // Determine if this child should fill width
+    const shouldFill = componentData?.props?.fillWidth ?? fillChildren;
+
+    // Get the existing className from the child's root element
+    const existingClassName = child.props.className || '';
+
+    // Combine the classes
+    const childClassName = cn(
+      existingClassName,
+      shouldFill && 'w-full flex-1'
+    );
+
+    return React.cloneElement(child, {
+      ...child.props,
+      className: childClassName,
+    });
+  });
+
   const containerClasses = cn(
     "border border-dashed border-border rounded-lg",
     "flex min-w-0",
@@ -81,7 +105,6 @@ export function AutoLayoutContainer({
       "justify-between": justify === "between",
       "justify-around": justify === "around",
     },
-    fillChildren && "[&>*]:w-full [&>*]:flex-1",
     className
   );
 
@@ -92,7 +115,7 @@ export function AutoLayoutContainer({
         minWidth: 'min-content',
       }}
     >
-      {children}
+      {wrappedChildren}
     </div>
   );
 }

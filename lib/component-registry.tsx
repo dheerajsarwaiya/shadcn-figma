@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { AutoLayoutContainer } from "@/components/auto-layout-container";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Card } from "../components/ui/card";
+import { Label } from "../components/ui/label";
+import { AutoLayoutContainer } from "../components/auto-layout-container";
 
 export const componentRegistry = {
   container: {
@@ -16,6 +16,7 @@ export const componentRegistry = {
       padding: "4",
       width: "full",
       fillChildren: false,
+      fillWidth: false,
       children: [],
       className: "",
     },
@@ -51,9 +52,14 @@ export const componentRegistry = {
         options: ["full", "1/2", "1/3", "2/3", "1/4", "3/4", "auto"],
       },
       fillChildren: {
-        label: "Fill Children",
+        label: "Fill All Children",
         type: "boolean",
-        description: "Make children take up full container width",
+        description: "Make all children take up full container width",
+      },
+      fillWidth: {
+        label: "Fill Container Width",
+        type: "boolean",
+        description: "Make this component take up full width of its container",
       },
       className: {
         label: "Custom Classes",
@@ -68,6 +74,7 @@ export const componentRegistry = {
     defaultProps: {
       children: "Button",
       variant: "default",
+      fillWidth: false,
       className: "",
     },
     properties: {
@@ -79,6 +86,11 @@ export const componentRegistry = {
         label: "Variant",
         type: "select",
         options: ["default", "destructive", "outline", "secondary", "ghost", "link"],
+      },
+      fillWidth: {
+        label: "Fill Container Width",
+        type: "boolean",
+        description: "Make this component take up full width of its container",
       },
       className: {
         label: "Custom Classes",
@@ -92,12 +104,18 @@ export const componentRegistry = {
     label: "Input",
     defaultProps: {
       placeholder: "Type here...",
+      fillWidth: false,
       className: "",
     },
     properties: {
       placeholder: {
         label: "Placeholder",
         type: "string",
+      },
+      fillWidth: {
+        label: "Fill Container Width",
+        type: "boolean",
+        description: "Make this component take up full width of its container",
       },
       className: {
         label: "Custom Classes",
@@ -111,12 +129,18 @@ export const componentRegistry = {
     label: "Card",
     defaultProps: {
       className: "p-4",
+      fillWidth: false,
       children: "Card Content",
     },
     properties: {
       children: {
         label: "Content",
         type: "string",
+      },
+      fillWidth: {
+        label: "Fill Container Width",
+        type: "boolean",
+        description: "Make this component take up full width of its container",
       },
       className: {
         label: "Custom Classes",
@@ -130,12 +154,18 @@ export const componentRegistry = {
     label: "Label",
     defaultProps: {
       children: "Label",
+      fillWidth: false,
       className: "",
     },
     properties: {
       children: {
         label: "Text",
         type: "string",
+      },
+      fillWidth: {
+        label: "Fill Container Width",
+        type: "boolean",
+        description: "Make this component take up full width of its container",
       },
       className: {
         label: "Custom Classes",
