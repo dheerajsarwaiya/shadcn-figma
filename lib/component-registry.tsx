@@ -15,7 +15,9 @@ export const componentRegistry = {
       justify: "start",
       padding: "4",
       width: "full",
+      fillChildren: false,
       children: [],
+      className: "",
     },
     properties: {
       direction: {
@@ -48,6 +50,16 @@ export const componentRegistry = {
         type: "select",
         options: ["full", "1/2", "1/3", "2/3", "1/4", "3/4", "auto"],
       },
+      fillChildren: {
+        label: "Fill Children",
+        type: "boolean",
+        description: "Make children take up full container width",
+      },
+      className: {
+        label: "Custom Classes",
+        type: "string",
+        description: "Add Tailwind classes for styling (e.g. bg-blue-500 text-white w-32 h-12)",
+      },
     },
   },
   button: {
@@ -56,6 +68,7 @@ export const componentRegistry = {
     defaultProps: {
       children: "Button",
       variant: "default",
+      className: "",
     },
     properties: {
       children: {
@@ -67,6 +80,11 @@ export const componentRegistry = {
         type: "select",
         options: ["default", "destructive", "outline", "secondary", "ghost", "link"],
       },
+      className: {
+        label: "Custom Classes",
+        type: "string",
+        description: "Add Tailwind classes for styling (e.g. bg-blue-500 text-white w-32 h-12)",
+      },
     },
   },
   input: {
@@ -74,11 +92,17 @@ export const componentRegistry = {
     label: "Input",
     defaultProps: {
       placeholder: "Type here...",
+      className: "",
     },
     properties: {
       placeholder: {
         label: "Placeholder",
         type: "string",
+      },
+      className: {
+        label: "Custom Classes",
+        type: "string",
+        description: "Add Tailwind classes for styling (e.g. bg-gray-100 text-gray-900 w-32 h-12)",
       },
     },
   },
@@ -94,6 +118,11 @@ export const componentRegistry = {
         label: "Content",
         type: "string",
       },
+      className: {
+        label: "Custom Classes",
+        type: "string",
+        description: "Add Tailwind classes for styling (e.g. bg-white text-gray-900 w-64 h-48)",
+      },
     },
   },
   label: {
@@ -101,11 +130,17 @@ export const componentRegistry = {
     label: "Label",
     defaultProps: {
       children: "Label",
+      className: "",
     },
     properties: {
       children: {
         label: "Text",
         type: "string",
+      },
+      className: {
+        label: "Custom Classes",
+        type: "string",
+        description: "Add Tailwind classes for styling (e.g. text-blue-600 font-bold)",
       },
     },
   },

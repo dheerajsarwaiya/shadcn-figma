@@ -12,6 +12,7 @@ interface AutoLayoutContainerProps {
   justify?: "start" | "center" | "end" | "between" | "around";
   padding?: string;
   width?: string;
+  fillChildren?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
@@ -54,6 +55,7 @@ export function AutoLayoutContainer({
   justify = "start",
   padding = "4",
   width = "full",
+  fillChildren = false,
   children,
   className,
 }: AutoLayoutContainerProps) {
@@ -63,7 +65,7 @@ export function AutoLayoutContainer({
 
   const containerClasses = cn(
     "border border-dashed border-border rounded-lg",
-    "flex min-w-0 flex-1", // Add flex-1 to make container grow
+    "flex min-w-0",
     widthClass,
     paddingClass,
     direction === "horizontal" ? "flex-row" : "flex-col",
@@ -79,7 +81,7 @@ export function AutoLayoutContainer({
       "justify-between": justify === "between",
       "justify-around": justify === "around",
     },
-    "[&>*]:flex-1 [&>*]:w-full", // Apply flex-1 and w-full to all direct children
+    fillChildren && "[&>*]:w-full [&>*]:flex-1",
     className
   );
 
