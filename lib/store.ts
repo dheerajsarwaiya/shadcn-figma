@@ -187,8 +187,8 @@ export const useDesignerStore = create<DesignerStore>((set, get) => ({
         };
       }
 
-      return {
-        components: state.components.map((c) => {
+      const updateComponentsRecursively = (components: Component[]): Component[] => {
+        return components.map((c) => {
           if (c.id === containerId) {
             return {
               ...c,
@@ -203,23 +203,16 @@ export const useDesignerStore = create<DesignerStore>((set, get) => ({
               ...c,
               props: {
                 ...c.props,
-                children: c.props.children.map((child: Component) => {
-                  if (child.id === containerId) {
-                    return {
-                      ...child,
-                      props: {
-                        ...child.props,
-                        children: [...child.props.children, newComponent],
-                      },
-                    };
-                  }
-                  return child;
-                }),
+                children: updateComponentsRecursively(c.props.children),
               },
             };
           }
           return c;
-        }),
+        });
+      };
+
+      return {
+        components: updateComponentsRecursively(state.components),
       };
     });
   },
